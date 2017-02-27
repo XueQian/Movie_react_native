@@ -1,52 +1,121 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
-import React, { Component } from 'react';
-import {
+import React, {Component} from 'react';
+import  {
     AppRegistry,
+    Image,
+    ListView,
     StyleSheet,
     Text,
-    View
+    View,
 } from 'react-native';
 
-export default class AwesomeProject extends Component {
+const API_URL = 'https://api.douban.com/v2/movie/top250?count=8&start=0';
+
+class AwesomeProject extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            dataSource: new ListView.DataSource({
+                rowHasChanged: (row1, row2) => row1 !== row2,
+            }),
+            loaded: false,
+        };
+    }
+
+    componentDidMount() {
+        this.fetchData();
+    }
+
+    fetchData() {
+        fetch(API_URL)
+            .then((response) => response.json())
+            .then((responseData) => {
+                this.setState({
+                    dataSource: this.state.dataSource.cloneWithRows(responseData.subjects),
+                    loaded: true,
+                });
+            })
+            .done();
+    }
+
     render() {
+        if (!this.state.dataSource) {
+            return this.renderLoadingView();
+        }
+
+        return (
+            <ListView
+                dataSource={this.state.dataSource}
+                renderRow={this.renderMovie}
+                style={styles.listView}
+            />
+        );
+    }
+
+    renderLoadingView() {
         return (
             <View style={styles.container}>
-                <Text style={styles.welcome}>
-                    Welcome to React Native!
+                <Text>
+                    Loading movies...
                 </Text>
-                <Text style={styles.instructions}>
-                    To get started, edit index.ios.js
-                </Text>
-                <Text style={styles.instructions}>
-                    Press Cmd+R to reload,{'\n'}
-                    Cmd+D or shake for dev menu
-                </Text>
+            </View>
+        );
+    }
+
+    renderMovie(movie) {
+        return (
+            <View style={styles.container}>
+                <Text>01</Text>
+
+                <View style={styles.moive}>
+                    <Image
+                        source={{uri: movie.images.small}}
+                        style={styles.thumbnail}
+                    />
+                    <View style={styles.rightContainer}>
+                        <Text style={styles.title}>{movie.title}</Text>
+                        <Text style={styles.year}>{movie.original_title}</Text>
+                        <Text style={styles.year}>{movie.raking.average}</Text>
+                    </View>
+                </View>
+
             </View>
         );
     }
 }
 
-const styles = StyleSheet.create({
+let styles = StyleSheet.create({
     container: {
+        backgroundColor: '#F1F1F1',
+        padding: 5,
+    },
+    moive: {
         flex: 1,
+        flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'red',
+
+        backgroundColor: '#FFFFFF',
+        borderWidth: 0.5,
+        borderColor: '#d6d7da',
     },
-    welcome: {
+    rightContainer: {
+        flex: 1,
+    },
+    title: {
         fontSize: 20,
+        marginBottom: 8,
         textAlign: 'center',
-        margin: 10,
     },
-    instructions: {
+    year: {
         textAlign: 'center',
-        color: '#333333',
-        marginBottom: 5,
+    },
+    thumbnail: {
+        width: 70,
+        height: 81,
+    },
+    listView: {
+        paddingTop: 20,
+        backgroundColor: '#F5FCFF',
     },
 });
 
